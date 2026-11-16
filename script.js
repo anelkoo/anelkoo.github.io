@@ -11,7 +11,11 @@ const T = {
     'projects.empty': 'No public projects yet. More are on the way.', 'projects.nodesc': 'No description yet.',
     'skills.title': 'Skills', 'skills.languages': 'Languages', 'skills.tools': 'Tools I use', 'skills.past': 'Used before',
     'github.title': 'On GitHub', 'github.sub': 'Counted across all my repositories, private ones included.',
-    'github.repos': 'Repositories', 'github.private': 'of them private', 'github.commits': 'Commits this year', 'github.stars': 'Stars',
+    'github.repos': 'Repositories', 'github.private': 'private', 'github.commits': 'Commits', 'github.stars': 'Stars',
+    'github.added': 'Lines added', 'github.deleted': 'Lines removed', 'github.since': 'On GitHub since', 'github.followers': 'Followers',
+    'github.activity': 'Commits per week, last 12 months', 'github.years': 'Commits per year', 'github.languages': 'Languages',
+    'github.week': 'Week of', 'github.commitsN': 'commits', 'github.today': 'Today',
+    'github.footnote': "Lines and commits are counted on each repo's main branch, so generated and copied files count too.",
     'github.nolangs': 'Language stats appear after the first update.', 'github.updated': 'Updated',
     'github.bar': 'Languages by share of code',
     'contact.title': 'Contact', 'contact.sub': 'Find me here, or send me a message.', 'contact.copy': 'Copy', 'contact.copied': 'Copied',
@@ -28,7 +32,11 @@ const T = {
     'projects.empty': 'Noch keine öffentlichen Projekte. Es kommen bald welche.', 'projects.nodesc': 'Noch keine Beschreibung.',
     'skills.title': 'Skills', 'skills.languages': 'Sprachen', 'skills.tools': 'Meine Tools', 'skills.past': 'Früher benutzt',
     'github.title': 'Auf GitHub', 'github.sub': 'Über alle meine Repositories gezählt, private eingeschlossen.',
-    'github.repos': 'Repositories', 'github.private': 'davon privat', 'github.commits': 'Commits dieses Jahr', 'github.stars': 'Sterne',
+    'github.repos': 'Repositories', 'github.private': 'privat', 'github.commits': 'Commits', 'github.stars': 'Sterne',
+    'github.added': 'Zeilen hinzugefügt', 'github.deleted': 'Zeilen gelöscht', 'github.since': 'Auf GitHub seit', 'github.followers': 'Follower',
+    'github.activity': 'Commits pro Woche, letzte 12 Monate', 'github.years': 'Commits pro Jahr', 'github.languages': 'Sprachen',
+    'github.week': 'Woche vom', 'github.commitsN': 'Commits', 'github.today': 'Heute',
+    'github.footnote': 'Zeilen und Commits werden auf dem Hauptbranch jedes Repos gezählt, generierte und kopierte Dateien also mit.',
     'github.nolangs': 'Die Sprachstatistik erscheint nach dem ersten Update.', 'github.updated': 'Aktualisiert',
     'github.bar': 'Sprachen nach Anteil am Code',
     'contact.title': 'Kontakt', 'contact.sub': 'Hier findest du mich, schreib mir gern.', 'contact.copy': 'Kopieren', 'contact.copied': 'Kopiert',
@@ -40,9 +48,9 @@ const COLORS = {
   JavaScript: '#f1e05a', TypeScript: '#3178c6', Python: '#3572A5', Java: '#b07219', 'C#': '#178600',
   'C++': '#f34b7d', C: '#555555', HTML: '#e34c26', CSS: '#663399', Go: '#00ADD8', Rust: '#dea584',
   Kotlin: '#A97BFF', Swift: '#F05138', PHP: '#4F5D95', Ruby: '#701516', Shell: '#89e051', Lua: '#000080',
-  Dart: '#00B4AB', Vue: '#41b883', PowerShell: '#012456', ShaderLab: '#222c37', HLSL: '#aace60', Batchfile: '#C1F12E',
+  Dart: '#00B4AB', Vue: '#41b883', Luau: '#00A2FF', Svelte: '#ff3e00', Other: '#8e8e93', PowerShell: '#012456', ShaderLab: '#222c37', HLSL: '#aace60', Batchfile: '#C1F12E',
 };
-const FALLBACK = ['#8e8e93', '#ff9f0a', '#30d158', '#bf5af2', '#64d2ff', '#ff375f'];
+const FALLBACK = ['#ff9f0a', '#30d158', '#bf5af2', '#64d2ff', '#ff375f'];
 const color = (name, i) => COLORS[name] || FALLBACK[i % FALLBACK.length];
 
 let lang = 'en';
@@ -77,10 +85,36 @@ function renderData() {
   $('skill-langs').replaceChildren(...data.languages.filter((l) => l.name !== 'Other').map((l) => el('li', {}, l.name)));
   $('skill-langs').hidden = $('skill-langs').previousElementSibling.hidden = !data.languages.length;
 
-  const stats = [[data.repos, t('github.repos') + (data.privateRepos ? ` · ${fmt.format(data.privateRepos)} ${t('github.private')}` : '')]];
-  if (data.commitsYear != null) stats.push([data.commitsYear, t('github.commits')]);
-  stats.push([data.stars, t('github.stars')]);
-  $('stats').replaceChildren(...stats.map(([n, label]) => el('div', { className: 'stat' }, el('b', {}, fmt.format(n)), el('span', {}, label))));
+  const big = new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 });
+  const stats = [
+    [fmt.format(data.repos), t('github.repos') + (data.privateRepos ? ` · ${fmt.format(data.privateRepos)} ${t('github.private')}` : '')],
+    [fmt.format(data.code.commits), t('github.commits')],
+    [big.format(data.code.added), t('github.added')],
+    [big.format(data.code.deleted), t('github.deleted')],
+    [new Date(data.since).getFullYear(), t('github.since')],
+  ];
+  if (data.stars) stats.push([fmt.format(data.stars), t('github.stars')]);
+  if (data.followers) stats.push([fmt.format(data.followers), t('github.followers')]);
+  $('stats').replaceChildren(...stats.map(([n, label]) => el('div', { className: 'stat' }, el('b', {}, n), el('span', {}, label))));
+
+  const day = (d) => d.toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' });
+  const start = new Date(data.activity.start + 'T00:00:00');
+  const max = Math.max(...data.activity.weeks);
+  $('activity-card').hidden = !max;
+  const weeks = $('weeks');
+  weeks.setAttribute('aria-label', `${t('github.activity')}: ${data.activity.weeks.reduce((a, b) => a + b, 0)} ${t('github.commitsN')}`);
+  weeks.replaceChildren(...data.activity.weeks.map((n, i) => el('span', {
+    className: n ? 'on' : '',
+    style: `height:${(n / max) * 100}%`,
+    title: `${t('github.week')} ${day(new Date(start.getTime() + i * 7 * 864e5))}: ${n} ${t('github.commitsN')}`,
+  })));
+  $('weeks-from').textContent = day(start);
+  $('weeks-to').textContent = t('github.today');
+
+  const yMax = Math.max(...data.years.map((y) => y.commits));
+  $('years-card').hidden = !yMax;
+  $('years').replaceChildren(...data.years.map((y) => el('li', {},
+    el('span', {}, y.year), el('i', { style: `width:${(y.commits / yMax) * 100}%` }), el('b', {}, fmt.format(y.commits)))));
 
   const bar = $('lang-bar');
   bar.hidden = !data.languages.length;
@@ -90,7 +124,7 @@ function renderData() {
     ? data.languages.map((l, i) => el('li', {}, el('i', { className: 'dot', style: `background:${color(l.name, i)}` }), l.name, el('em', {}, `${fmt.format(l.percent)}%`)))
     : [el('li', { className: 'empty' }, t('github.nolangs'))]));
 
-  $('updated').textContent = `${t('github.updated')}: ${new Date(data.updated).toLocaleDateString(lang, { dateStyle: 'long' })}`;
+  $('updated').textContent = `${t('github.updated')}: ${new Date(data.updated).toLocaleDateString(lang, { dateStyle: 'long' })}.`;
 }
 
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => {

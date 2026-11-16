@@ -70,11 +70,25 @@
     <section class="wrap section" id="github">
       <h2 data-i18n="github.title">On GitHub</h2>
       <p class="sub" data-i18n="github.sub">Counted across all my repositories, private ones included.</p>
-      <div class="card">
-        <div class="stats" id="stats"></div>
-        <div class="bar" id="lang-bar" role="img"></div>
-        <ul class="legend" id="lang-legend"></ul>
-        <p class="note" id="updated"></p>
+      <div class="stack">
+        <div class="card"><div class="stats" id="stats"></div></div>
+        <div class="card" id="activity-card">
+          <h3 data-i18n="github.activity">Commits per week, last 12 months</h3>
+          <div class="weeks" id="weeks" role="img"></div>
+          <div class="axis"><span id="weeks-from"></span><span id="weeks-to"></span></div>
+        </div>
+        <div class="pair">
+          <div class="card" id="years-card">
+            <h3 data-i18n="github.years">Commits per year</h3>
+            <ul class="years" id="years"></ul>
+          </div>
+          <div class="card">
+            <h3 data-i18n="github.languages">Languages</h3>
+            <div class="bar" id="lang-bar" role="img"></div>
+            <ul class="legend" id="lang-legend"></ul>
+          </div>
+        </div>
+        <p class="note"><span id="updated"></span> <span data-i18n="github.footnote">Lines and commits are counted on each repo's main branch, so generated and copied files count too.</span></p>
       </div>
     </section>
 

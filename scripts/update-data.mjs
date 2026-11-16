@@ -37,13 +37,40 @@ const rest = sorted.slice(7).reduce((a, [, n]) => a + n, 0);
 if (rest) top.push(['Other', rest]);
 const languages = top.map(([name, n]) => ({ name, percent: +((n / total) * 100).toFixed(1) }));
 
-let commitsYear = null;
-if (token) {
-  const q = '{ viewer { contributionsCollection { totalCommitContributions restrictedContributionsCount } } }';
-  const { data } = await gh('/graphql', { method: 'POST', body: JSON.stringify({ query: q }) });
-  const c = data.viewer.contributionsCollection;
-  commitsYear = c.totalCommitContributions + c.restrictedContributionsCount;
+// Lines added/deleted and commits by me, from each repo's contributor stats (default branch only).
+// Used instead of GitHub's contribution calendar, which leaves out most private work.
+// GitHub computes these lazily and answers 202 until ready, so retry a few times.
+async function contributorStats(repo) {
+  for (let i = 0; i < 6; i++) {
+    const res = await fetch(`https://api.github.com/repos/${repo}/stats/contributors`, { headers });
+    if (res.status === 200) return res.json();
+    if (res.status === 204) return [];
+    if (res.status !== 202) throw new Error(`GitHub API ${res.status} on stats for ${repo}`);
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  console.warn(`stats for ${repo} not ready, skipped`);
+  return [];
 }
+const WEEK = 7 * 864e5;
+const now = Date.now();
+const firstWeek = now - 52 * WEEK; // last 52 weeks, oldest first
+const code = { added: 0, deleted: 0, commits: 0 };
+const perYear = {};
+const weeks = Array(52).fill(0);
+for (const r of repos) {
+  const me = (await contributorStats(r.full_name)).find((s) => s.author?.login?.toLowerCase() === USER);
+  for (const w of me?.weeks || []) {
+    code.added += w.a; code.deleted += w.d; code.commits += w.c;
+    if (!w.c) continue;
+    const t = w.w * 1000;
+    perYear[new Date(t).getUTCFullYear()] = (perYear[new Date(t).getUTCFullYear()] || 0) + w.c;
+    const i = Math.floor((t - firstWeek) / WEEK);
+    if (i >= 0 && i < 52) weeks[i] += w.c;
+  }
+}
+const years = [];
+for (let y = new Date(user.created_at).getUTCFullYear(); y <= new Date(now).getUTCFullYear(); y++) years.push({ year: y, commits: perYear[y] || 0 });
+const activity = { start: new Date(firstWeek).toISOString().slice(0, 10), weeks };
 
 const pub = repos.filter((r) => !r.private);
 const projects = pub
@@ -67,12 +94,18 @@ const out = {
   repos: repos.length,
   privateRepos: repos.length - pub.length,
   stars: repos.reduce((a, r) => a + r.stargazers_count, 0),
-  commitsYear,
+  followers: user.followers,
+  since: user.created_at,
+  code,
+  years,
+  activity,
   languages,
   projects,
 };
 
 if (total) assert(Math.abs(languages.reduce((a, l) => a + l.percent, 0) - 100) < 1, 'language percents must add up to 100');
+assert(years.reduce((a, y) => a + y.commits, 0) <= code.commits, 'yearly commits cannot exceed the total');
+assert(weeks.reduce((a, b) => a + b, 0) <= code.commits, 'weekly commits cannot exceed the total');
 assert(projects.every((p) => pub.some((r) => r.html_url === p.url)), 'only public repos may be listed');
 
 writeFileSync(new URL('../data.json', import.meta.url), JSON.stringify(out, null, 2) + '\n');
