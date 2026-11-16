@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anel</title>
+  <meta name="description" content="Anel: student and developer. Projects, languages and contact.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="https://avatars.githubusercontent.com/anelkoo">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">Anel</a>
+      <nav class="links" aria-label="Sections">
+        <a href="#about" data-i18n="nav.about">About</a>
+        <a href="#projects" data-i18n="nav.projects">Projects</a>
+        <a href="#skills" data-i18n="nav.skills">Skills</a>
+        <a href="#github" data-i18n="nav.github">GitHub</a>
+        <a href="#contact" data-i18n="nav.contact">Contact</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="de" aria-pressed="false">DE</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="top">
+      <img class="avatar" src="https://avatars.githubusercontent.com/anelkoo" alt="Anel's profile picture" width="120" height="120">
+      <h1 data-i18n="hero.title">Hi, I'm Anel.</h1>
+      <p class="lead" data-i18n="hero.lead">Student by day, programmer the rest of the time. I build things and put them on GitHub.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/anelkoo" target="_blank" rel="noopener" data-i18n="hero.github">View my GitHub</a>
+        <a class="btn" href="#contact" data-i18n="hero.contact">Get in touch</a>
+      </div>
+    </section>
+
+    <section class="wrap section" id="about">
+      <h2 data-i18n="about.title">About me</h2>
+      <p class="prose" data-i18n="about.text">I'm a student, and most of my free time goes into programming. I like trying new languages and tools, figuring out how things work, and turning ideas into small projects. I work mostly on Linux, in VS Code and Visual Studio.</p>
+    </section>
+
+    <section class="wrap section" id="projects">
+      <h2 data-i18n="projects.title">Projects</h2>
+      <p class="sub" data-i18n="projects.sub">My public repositories, straight from GitHub.</p>
+      <div class="grid" id="project-list"></div>
+    </section>
+
+    <section class="wrap section" id="skills">
+      <h2 data-i18n="skills.title">Skills</h2>
+      <div class="card">
+        <h3 data-i18n="skills.languages">Languages</h3>
+        <ul class="chips" id="skill-langs"></ul>
+        <h3 data-i18n="skills.tools">Tools I use</h3>
+        <ul class="chips">
+          <li>Linux</li><li>VS Code</li><li>Visual Studio</li>
+        </ul>
+        <h3 data-i18n="skills.past">Used before</h3>
+        <ul class="chips muted">
+          <li>IntelliJ IDEA</li><li>Rider</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wrap section" id="github">
+      <h2 data-i18n="github.title">On GitHub</h2>
+      <p class="sub" data-i18n="github.sub">Counted across all my repositories, private ones included.</p>
+      <div class="card">
+        <div class="stats" id="stats"></div>
+        <div class="bar" id="lang-bar" role="img"></div>
+        <ul class="legend" id="lang-legend"></ul>
+        <p class="note" id="updated"></p>
+      </div>
+    </section>
+
+    <section class="wrap section" id="contact">
+      <h2 data-i18n="contact.title">Contact</h2>
+      <p class="sub" data-i18n="contact.sub">Find me here, or send me a message.</p>
+      <ul class="card list">
+        <li><span>GitHub</span><a href="https://github.com/anelkoo" target="_blank" rel="noopener">anelkoo</a></li>
+        <li><span>Instagram</span><a href="https://www.instagram.com/anel.mk7/" target="_blank" rel="noopener">anel.mk7</a></li>
+        <li><span>TikTok</span><a href="https://www.tiktok.com/@spunzoo" target="_blank" rel="noopener">spunzoo</a></li>
+        <li><span>Discord</span><button type="button" class="copy" data-copy="spunzo">spunzo <small data-i18n="contact.copy">Copy</small></button></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="wrap footer">© <span id="year"></span> Anel</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
