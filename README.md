@@ -4,7 +4,7 @@ My personal website: one page with HTML, CSS and plain JavaScript, no build step
 
 - `index.html`, `style.css`, `script.js`: the page. The English and German text is in `script.js` (the `T` object).
 - `scripts/update-data.mjs` writes `data.json` from the GitHub API, plus Spotify and Steam when their secrets are set.
-- `.github/workflows/deploy.yml` reruns that script and deploys the site on every push to `main` and once a day.
+- `.github/workflows/deploy.yml` reruns that script and deploys the site on every push to `main` and five times a day (04:00, 10:00, 15:00, 20:00 and 23:00 UTC).
 
 ## Run it locally
 
