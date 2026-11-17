@@ -6,10 +6,11 @@ const T = {
     'hero.lead': 'Student by day, programmer the rest of the time. I build things and put them on GitHub.',
     'hero.github': 'View my GitHub', 'hero.contact': 'Get in touch',
     'about.title': 'About me',
-    'about.text': "I'm a student, and most of my free time goes into programming. I like trying new languages and tools, figuring out how things work, and turning ideas into small projects. I work mostly on Linux, in VS Code and Visual Studio.",
+    'about.text': "I'm a student, and most of my free time goes into programming. I like trying new languages and tools, figuring out how things work, and turning ideas into small projects. I split my time between Windows and Linux Mint, about 60/40, and write code in VS Code and Visual Studio.",
     'projects.title': 'Projects', 'projects.sub': 'My public repositories, straight from GitHub.',
     'projects.empty': 'No public projects yet. More are on the way.', 'projects.nodesc': 'No description yet.',
-    'skills.title': 'Skills', 'skills.languages': 'Languages', 'skills.tools': 'Tools I use', 'skills.past': 'Used before',
+    'skills.title': 'Skills', 'skills.languages': 'Languages', 'skills.tools': 'Editors', 'skills.past': 'Used before',
+    'skills.os': 'Where I work', 'skills.osBar': 'Windows 60%, Linux Mint 40%', 'skills.devices': 'Phones',
     'github.title': 'On GitHub', 'github.sub': 'Counted across all my repositories, private ones included.',
     'github.repos': 'Repositories', 'github.private': 'private', 'github.commits': 'Commits', 'github.stars': 'Stars',
     'github.added': 'Lines added', 'github.deleted': 'Lines removed', 'github.since': 'On GitHub since', 'github.followers': 'Followers',
@@ -40,10 +41,11 @@ const T = {
     'hero.lead': 'Tagsüber Schüler, den Rest der Zeit Programmierer. Ich baue Dinge und stelle sie auf GitHub.',
     'hero.github': 'Mein GitHub', 'hero.contact': 'Kontakt aufnehmen',
     'about.title': 'Über mich',
-    'about.text': 'Ich bin Schüler und verbringe den Großteil meiner Freizeit mit Programmieren. Ich probiere gern neue Sprachen und Tools aus, finde heraus, wie Dinge funktionieren, und mache aus Ideen kleine Projekte. Meistens arbeite ich unter Linux, mit VS Code und Visual Studio.',
+    'about.text': 'Ich bin Schüler und verbringe den Großteil meiner Freizeit mit Programmieren. Ich probiere gern neue Sprachen und Tools aus, finde heraus, wie Dinge funktionieren, und mache aus Ideen kleine Projekte. Ich arbeite ungefähr zu 60 % unter Windows und zu 40 % unter Linux Mint und schreibe Code in VS Code und Visual Studio.',
     'projects.title': 'Projekte', 'projects.sub': 'Meine öffentlichen Repositories, direkt von GitHub.',
     'projects.empty': 'Noch keine öffentlichen Projekte. Es kommen bald welche.', 'projects.nodesc': 'Noch keine Beschreibung.',
-    'skills.title': 'Skills', 'skills.languages': 'Sprachen', 'skills.tools': 'Meine Tools', 'skills.past': 'Früher benutzt',
+    'skills.title': 'Skills', 'skills.languages': 'Sprachen', 'skills.tools': 'Editoren', 'skills.past': 'Früher benutzt',
+    'skills.os': 'Wo ich arbeite', 'skills.osBar': 'Windows 60 %, Linux Mint 40 %', 'skills.devices': 'Handys',
     'github.title': 'Auf GitHub', 'github.sub': 'Über alle meine Repositories gezählt, private eingeschlossen.',
     'github.repos': 'Repositories', 'github.private': 'privat', 'github.commits': 'Commits', 'github.stars': 'Sterne',
     'github.added': 'Zeilen hinzugefügt', 'github.deleted': 'Zeilen gelöscht', 'github.since': 'Auf GitHub seit', 'github.followers': 'Follower',
@@ -128,6 +130,7 @@ const mmss = (ms) => `${Math.floor(ms / 6e4)}:${String(Math.floor(ms / 1e3) % 60
 function render() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-label]').forEach((n) => n.setAttribute('aria-label', t(n.dataset.i18nLabel)));
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang));
   $('timeline-list').replaceChildren(...TIMELINE.map((e) => el('li', {}, el('b', {}, e.year), el('span', {}, e[lang]))));
   renderDiscord();
