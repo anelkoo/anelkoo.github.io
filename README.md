@@ -33,7 +33,7 @@ Each of these sections stays hidden until its setup is done. Add the secrets the
 
 ### Spotify
 
-1. Go to https://developer.spotify.com/dashboard and create an app. Set the redirect URI to `http://127.0.0.1:8888/callback` and tick **Web API**. Spotify only allows this for accounts with Premium.
+1. Go to https://developer.spotify.com/dashboard and create an app. Set the redirect URI to `http://127.0.0.1:8888/callback` and tick **Web API**. Spotify may ask for a Premium account at this step.
 2. Copy the app's client ID and client secret, then run this once in PowerShell:
 
    ```powershell
