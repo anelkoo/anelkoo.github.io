@@ -43,6 +43,8 @@ Each of these sections stays hidden until its setup is done. Add the secrets the
    Open the link it prints and allow access. The terminal then shows your refresh token.
 3. Add three secrets: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` and `SPOTIFY_REFRESH_TOKEN`.
 
+The refresh token only works for 180 days. After that the Music section disappears and the workflow log shows a "Spotify skipped" warning. Run `spotify-auth.mjs` again and replace the `SPOTIFY_REFRESH_TOKEN` secret.
+
 Spotify no longer sends genres for some apps. If it sends none, the genre card stays hidden.
 
 ### Steam

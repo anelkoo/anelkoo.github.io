@@ -78,7 +78,7 @@ const TIMELINE = [
 
 // Your numeric Discord user ID (Discord settings > Advanced > Developer Mode, then right-click your name > Copy User ID).
 // The Discord section stays hidden while this is empty. Lanyard only sees you after you join discord.gg/lanyard.
-const DISCORD_ID = '';
+const DISCORD_ID = '733758685674864660';
 
 // GitHub's own language colors for the common ones
 const COLORS = {
