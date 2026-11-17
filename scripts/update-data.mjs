@@ -86,6 +86,73 @@ const projects = pub
     stars: r.stargazers_count,
   }));
 
+// Spotify and Steam run only when their secrets are set. A failure there skips that section
+// with a warning instead of failing the whole deploy.
+const env = process.env;
+async function optional(name, fn) {
+  try { return await fn(); } catch (e) { console.warn(`::warning::${name} skipped: ${e.message}`); return null; }
+}
+async function getJSON(url, init) {
+  const res = await fetch(url, init);
+  if (!res.ok) throw new Error(`${res.status} on ${url.split('?')[0]}`); // no query string: it holds the Steam key
+  return res.json();
+}
+
+const music = env.SPOTIFY_REFRESH_TOKEN ? await optional('Spotify', async () => {
+  const { access_token } = await getJSON('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { Authorization: 'Basic ' + Buffer.from(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`).toString('base64') },
+    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: env.SPOTIFY_REFRESH_TOKEN }),
+  });
+  const sp = (path) => getJSON(`https://api.spotify.com/v1${path}`, { headers: { Authorization: `Bearer ${access_token}` } });
+  const [tracks, artists, recent] = await Promise.all([
+    sp('/me/top/tracks?time_range=short_term&limit=10'),
+    sp('/me/top/artists?time_range=short_term&limit=50'), // 50 so the genre counts mean something
+    sp('/me/player/recently-played?limit=10'),
+  ]);
+  const img = (images) => (images?.at(-2) || images?.[0])?.url || null; // images come widest first; the middle one is ~300px
+  const track = (t) => ({ name: t.name, artist: t.artists.map((a) => a.name).join(', '), url: t.external_urls.spotify, image: img(t.album.images) });
+  const counts = {};
+  for (const a of artists.items) for (const g of a.genres || []) counts[g] = (counts[g] || 0) + 1;
+  return {
+    tracks: tracks.items.map(track),
+    artists: artists.items.slice(0, 10).map((a) => ({ name: a.name, url: a.external_urls.spotify, image: img(a.images) })),
+    recent: recent.items.map((i) => ({ ...track(i.track), at: i.played_at })),
+    genres: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, n]) => ({ name, artists: n })),
+    artistCount: artists.items.length,
+  };
+}) : null;
+
+// HIDE_GAMES is a secret (comma-separated names) so the list itself never shows up in the public repo.
+const hide = new Set((env.HIDE_GAMES || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
+const games = env.STEAM_KEY && env.STEAM_ID ? await optional('Steam', async () => {
+  const steam = (path, q) => getJSON(`https://api.steampowered.com/${path}/?${new URLSearchParams({ key: env.STEAM_KEY, steamid: env.STEAM_ID, ...q })}`);
+  const owned = (await steam('IPlayerService/GetOwnedGames/v1', { include_appinfo: 1, include_played_free_games: 1 })).response.games;
+  if (!owned) throw new Error('no games returned. Set Steam profile and "Game details" to Public');
+  const all = owned.filter((g) => !hide.has(g.name.toLowerCase()));
+  const played = all.filter((g) => g.playtime_forever > 0).sort((a, b) => b.playtime_forever - a.playtime_forever);
+  const hours = (min) => Math.round(min / 6) / 10;
+  const game = (g) => ({ appid: g.appid, name: g.name, icon: g.img_icon_url, hours: hours(g.playtime_forever) });
+  // One call per played game. Games without achievements answer with an error, which counts as none.
+  const ach = [];
+  for (let i = 0; i < played.length; i += 10) {
+    ach.push(...await Promise.all(played.slice(i, i + 10).map(async (g) => {
+      const list = await steam('ISteamUserStats/GetPlayerAchievements/v1', { appid: g.appid }).then((r) => r.playerstats?.achievements || [], () => []);
+      return { ...game(g), done: list.filter((a) => a.achieved).length, total: list.length };
+    })));
+  }
+  return {
+    count: all.length,
+    hours: Math.round(played.reduce((a, g) => a + g.playtime_forever, 0) / 60),
+    recent: all.filter((g) => g.playtime_2weeks).sort((a, b) => b.playtime_2weeks - a.playtime_2weeks).slice(0, 6)
+      .map((g) => ({ ...game(g), recent: hours(g.playtime_2weeks) })),
+    top: played.slice(0, 8).map(game),
+    achievements: ach.filter((g) => g.total).slice(0, 5), // the 5 most played games that have achievements
+    unlocked: ach.reduce((a, g) => a + g.done, 0),
+    perfect: ach.filter((g) => g.total && g.done === g.total).map(({ appid, name, icon }) => ({ appid, name, icon })),
+  };
+}) : null;
+
 const out = {
   updated: new Date().toISOString(),
   name: user.name || user.login,
@@ -101,7 +168,16 @@ const out = {
   activity,
   languages,
   projects,
+  music,
+  games,
 };
+
+if (music) assert(music.genres.every((g) => g.artists <= music.artistCount), 'a genre cannot have more artists than were fetched');
+if (games) {
+  const shown = [...games.recent, ...games.top, ...games.achievements, ...games.perfect];
+  assert(shown.every((g) => !hide.has(g.name.toLowerCase())), 'hidden games must never be listed');
+  assert(games.achievements.every((g) => g.done <= g.total), 'unlocked achievements cannot exceed the total');
+}
 
 if (total) assert(Math.abs(languages.reduce((a, l) => a + l.percent, 0) - 100) < 1, 'language percents must add up to 100');
 assert(years.reduce((a, y) => a + y.commits, 0) <= code.commits, 'yearly commits cannot exceed the total');

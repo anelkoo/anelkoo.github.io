@@ -24,10 +24,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build data.json (private repos included when STATS_TOKEN is set)
+      - name: Build data.json (private repos, Spotify and Steam included when their secrets are set)
         run: node scripts/update-data.mjs
         env:
           GH_TOKEN: ${{ secrets.STATS_TOKEN }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
+          STEAM_KEY: ${{ secrets.STEAM_KEY }}
+          STEAM_ID: ${{ secrets.STEAM_ID }}
+          HIDE_GAMES: ${{ secrets.HIDE_GAMES }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

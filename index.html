@@ -17,9 +17,13 @@
       <a class="brand" href="#top">Anel</a>
       <nav class="links" aria-label="Sections">
         <a href="#about" data-i18n="nav.about">About</a>
+        <a href="#timeline" data-i18n="nav.timeline">Timeline</a>
         <a href="#projects" data-i18n="nav.projects">Projects</a>
         <a href="#skills" data-i18n="nav.skills">Skills</a>
         <a href="#github" data-i18n="nav.github">GitHub</a>
+        <a href="#music" data-i18n="nav.music" hidden>Music</a>
+        <a href="#games" data-i18n="nav.games" hidden>Games</a>
+        <a href="#discord" data-i18n="nav.discord" hidden>Discord</a>
         <a href="#contact" data-i18n="nav.contact">Contact</a>
       </nav>
       <div class="lang" role="group" aria-label="Language">
@@ -43,6 +47,11 @@
     <section class="wrap section" id="about">
       <h2 data-i18n="about.title">About me</h2>
       <p class="prose" data-i18n="about.text">I'm a student, and most of my free time goes into programming. I like trying new languages and tools, figuring out how things work, and turning ideas into small projects. I work mostly on Linux, in VS Code and Visual Studio.</p>
+    </section>
+
+    <section class="wrap section" id="timeline">
+      <h2 data-i18n="timeline.title">Timeline</h2>
+      <ol class="card timeline" id="timeline-list"></ol>
     </section>
 
     <section class="wrap section" id="projects">
@@ -90,6 +99,39 @@
         </div>
         <p class="note"><span id="updated"></span> <span data-i18n="github.footnote">Lines and commits are counted on each repo's main branch, so generated and copied files count too.</span></p>
       </div>
+    </section>
+
+    <section class="wrap section" id="music" hidden>
+      <h2 data-i18n="music.title">Music</h2>
+      <p class="sub" data-i18n="music.sub">What I've had on repeat on Spotify the last four weeks.</p>
+      <div class="stack">
+        <div class="pair">
+          <div class="card"><h3 data-i18n="music.tracks">Top tracks</h3><ol class="rows" id="top-tracks"></ol></div>
+          <div class="card"><h3 data-i18n="music.recent">Recently played</h3><ul class="rows" id="recent-tracks"></ul></div>
+        </div>
+        <div class="card"><h3 data-i18n="music.artists">Top artists</h3><ul class="artists" id="top-artists"></ul></div>
+        <div class="card" id="genres-card"><h3 data-i18n="music.genres">Top genres</h3><ul class="years genres" id="genres"></ul></div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="games" hidden>
+      <h2 data-i18n="games.title">Games</h2>
+      <p class="sub" data-i18n="games.sub">Straight from my Steam library.</p>
+      <div class="stack">
+        <div class="card"><div class="stats" id="game-stats"></div></div>
+        <div class="pair">
+          <div class="card" id="recent-games-card"><h3 data-i18n="games.recent">Last two weeks</h3><ul class="rows" id="recent-games"></ul></div>
+          <div class="card"><h3 data-i18n="games.top">Most played</h3><ol class="rows" id="top-games"></ol></div>
+        </div>
+        <div class="card" id="ach-card"><h3 data-i18n="games.achievements">Achievements in my most played games</h3><ul class="progress" id="achievements"></ul></div>
+        <div class="card" id="perfect-card"><h3 data-i18n="games.perfect">100% completed</h3><ul class="chips" id="perfect"></ul></div>
+      </div>
+    </section>
+
+    <section class="wrap section" id="discord" hidden>
+      <h2 data-i18n="discord.title">Discord</h2>
+      <p class="sub" data-i18n="discord.sub">What I'm up to right now, live.</p>
+      <div class="card discord" id="discord-card"></div>
     </section>
 
     <section class="wrap section" id="contact">

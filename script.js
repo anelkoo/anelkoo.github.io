@@ -19,6 +19,19 @@ const T = {
     'github.nolangs': 'Language stats appear after the first update.', 'github.updated': 'Updated',
     'github.bar': 'Languages by share of code',
     'contact.title': 'Contact', 'contact.sub': 'Find me here, or send me a message.', 'contact.copy': 'Copy', 'contact.copied': 'Copied',
+    'nav.timeline': 'Timeline', 'nav.music': 'Music', 'nav.games': 'Games', 'nav.discord': 'Discord',
+    'timeline.title': 'Timeline',
+    'music.title': 'Music', 'music.sub': "What I've had on repeat on Spotify the last four weeks.",
+    'music.tracks': 'Top tracks', 'music.recent': 'Recently played', 'music.artists': 'Top artists', 'music.genres': 'Top genres',
+    'music.artistsN': 'artists',
+    'games.title': 'Games', 'games.sub': 'Straight from my Steam library.',
+    'games.owned': 'Games', 'games.hours': 'Hours played', 'games.unlocked': 'Achievements', 'games.perfectN': '100% completed',
+    'games.recent': 'Last two weeks', 'games.top': 'Most played', 'games.achievements': 'Achievements in my most played games',
+    'games.perfect': '100% completed', 'games.h': 'h', 'games.total': 'in total',
+    'discord.title': 'Discord', 'discord.sub': "What I'm up to right now, live.",
+    'discord.online': 'Online', 'discord.idle': 'Away', 'discord.dnd': 'Do not disturb', 'discord.offline': 'Offline',
+    'discord.0': 'Playing', 'discord.1': 'Streaming', 'discord.3': 'Watching', 'discord.5': 'Competing in',
+    'discord.spotify': 'Listening on Spotify', 'discord.idleText': 'Not doing anything right now.', 'discord.for': 'for',
   },
   de: {
     skip: 'Zum Inhalt springen',
@@ -40,8 +53,32 @@ const T = {
     'github.nolangs': 'Die Sprachstatistik erscheint nach dem ersten Update.', 'github.updated': 'Aktualisiert',
     'github.bar': 'Sprachen nach Anteil am Code',
     'contact.title': 'Kontakt', 'contact.sub': 'Hier findest du mich, schreib mir gern.', 'contact.copy': 'Kopieren', 'contact.copied': 'Kopiert',
+    'nav.timeline': 'Werdegang', 'nav.music': 'Musik', 'nav.games': 'Games', 'nav.discord': 'Discord',
+    'timeline.title': 'Werdegang',
+    'music.title': 'Musik', 'music.sub': 'Was ich die letzten vier Wochen auf Spotify rauf und runter gehört habe.',
+    'music.tracks': 'Top-Songs', 'music.recent': 'Zuletzt gehört', 'music.artists': 'Top-Künstler', 'music.genres': 'Top-Genres',
+    'music.artistsN': 'Künstler',
+    'games.title': 'Games', 'games.sub': 'Direkt aus meiner Steam-Bibliothek.',
+    'games.owned': 'Spiele', 'games.hours': 'Stunden gespielt', 'games.unlocked': 'Erfolge', 'games.perfectN': 'zu 100 % geschafft',
+    'games.recent': 'Letzte zwei Wochen', 'games.top': 'Am meisten gespielt', 'games.achievements': 'Erfolge in meinen meistgespielten Spielen',
+    'games.perfect': 'Zu 100 % geschafft', 'games.h': 'Std.', 'games.total': 'insgesamt',
+    'discord.title': 'Discord', 'discord.sub': 'Was ich gerade mache, live.',
+    'discord.online': 'Online', 'discord.idle': 'Abwesend', 'discord.dnd': 'Bitte nicht stören', 'discord.offline': 'Offline',
+    'discord.0': 'Spielt', 'discord.1': 'Streamt', 'discord.3': 'Schaut', 'discord.5': 'Tritt an in',
+    'discord.spotify': 'Hört auf Spotify', 'discord.idleText': 'Macht gerade nichts.', 'discord.for': 'seit',
   },
 };
+
+// Newest first. Add your own milestones here, in both languages.
+const TIMELINE = [
+  { year: 2026, en: 'Built this website.', de: 'Diese Website gebaut.' },
+  { year: 2024, en: 'First commits on GitHub.', de: 'Erste Commits auf GitHub.' },
+  { year: 2023, en: 'Created my GitHub account.', de: 'Meinen GitHub-Account erstellt.' },
+];
+
+// Your numeric Discord user ID (Discord settings > Advanced > Developer Mode, then right-click your name > Copy User ID).
+// The Discord section stays hidden while this is empty. Lanyard only sees you after you join discord.gg/lanyard.
+const DISCORD_ID = '';
 
 // GitHub's own language colors for the common ones
 const COLORS = {
@@ -59,15 +96,116 @@ const $ = (id) => document.getElementById(id);
 const t = (k) => T[lang][k];
 const el = (tag, props = {}, ...kids) => {
   const n = Object.assign(document.createElement(tag), props);
-  n.append(...kids);
+  n.append(...kids.filter((k) => k != null && k !== false));
   return n;
 };
+// Shows or hides a section together with its nav link
+const show = (id, on) => { $(id).hidden = document.querySelector(`.links a[href="#${id}"]`).hidden = !on; };
+const link = (href, ...kids) => el('a', { href, target: '_blank', rel: 'noopener' }, ...kids);
+const pic = (src) => (src ? el('img', { src, alt: '', loading: 'lazy' }) : el('span', { className: 'ph' }));
+// One list row: picture, title over subtitle, optional value on the right
+const row = (img, title, sub, right, href) => {
+  const kids = [img, el('span', { className: 'txt' }, el('strong', {}, title), sub && el('small', {}, sub)), right && el('em', {}, right)];
+  return el('li', {}, href ? link(href, ...kids) : el('div', {}, ...kids));
+};
+// Steam's wide header image, falling back to the small icon the API always has
+const steamPic = (g) => {
+  const i = el('img', { src: `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`, alt: '', loading: 'lazy', className: 'wide' });
+  i.onerror = () => { i.onerror = null; i.src = `https://media.steampowered.com/steamcommunity/public/images/apps/${g.appid}/${g.icon}.jpg`; };
+  return i;
+};
+const ago = (iso) => {
+  const m = Math.round((new Date(iso) - Date.now()) / 6e4);
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+  return Math.abs(m) < 60 ? rtf.format(m, 'minute') : Math.abs(m) < 1440 ? rtf.format(Math.round(m / 60), 'hour') : rtf.format(Math.round(m / 1440), 'day');
+};
+const since = (start) => {
+  const m = (Date.now() - start) / 6e4;
+  return new Intl.NumberFormat(lang, { style: 'unit', unit: m < 60 ? 'minute' : 'hour', unitDisplay: 'short', maximumFractionDigits: m < 60 ? 0 : 1 }).format(m < 60 ? m : m / 60);
+};
+const mmss = (ms) => `${Math.floor(ms / 6e4)}:${String(Math.floor(ms / 1e3) % 60).padStart(2, '0')}`;
 
 function render() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+  $('timeline-list').replaceChildren(...TIMELINE.map((e) => el('li', {}, el('b', {}, e.year), el('span', {}, e[lang]))));
+  renderDiscord();
   if (data) renderData();
+}
+
+function renderMusic(fmt) {
+  const m = data.music;
+  show('music', m);
+  if (!m) return;
+  $('top-tracks').replaceChildren(...m.tracks.map((x) => row(pic(x.image), x.name, x.artist, null, x.url)));
+  $('recent-tracks').replaceChildren(...m.recent.map((x) => row(pic(x.image), x.name, x.artist, ago(x.at), x.url)));
+  $('top-artists').replaceChildren(...m.artists.map((a) => el('li', {}, link(a.url, pic(a.image), el('span', {}, a.name)))));
+  const max = Math.max(...m.genres.map((g) => g.artists));
+  $('genres-card').hidden = !m.genres.length;
+  $('genres').replaceChildren(...m.genres.map((g) => el('li', { title: `${fmt.format(g.artists)} ${t('music.artistsN')}` },
+    el('span', {}, g.name), el('i', { style: `width:${(g.artists / max) * 100}%` }), el('b', {}, fmt.format(g.artists)))));
+}
+
+function renderGames(fmt) {
+  const g = data.games;
+  show('games', g);
+  if (!g) return;
+  const h = (n) => `${fmt.format(n)} ${t('games.h')}`;
+  const store = (x) => `https://store.steampowered.com/app/${x.appid}`;
+  $('game-stats').replaceChildren(...[[g.count, 'games.owned'], [g.hours, 'games.hours'], [g.unlocked, 'games.unlocked'], [g.perfect.length, 'games.perfectN']]
+    .map(([n, k]) => el('div', { className: 'stat' }, el('b', {}, fmt.format(n)), el('span', {}, t(k)))));
+  $('recent-games-card').hidden = !g.recent.length;
+  $('recent-games').replaceChildren(...g.recent.map((x) => row(steamPic(x), x.name, `${h(x.hours)} ${t('games.total')}`, h(x.recent), store(x))));
+  $('top-games').replaceChildren(...g.top.map((x) => row(steamPic(x), x.name, null, h(x.hours), store(x))));
+  $('ach-card').hidden = !g.achievements.length;
+  $('achievements').replaceChildren(...g.achievements.map((x) => el('li', {},
+    el('span', {}, x.name), el('b', {}, `${fmt.format(x.done)} / ${fmt.format(x.total)}`),
+    el('i', { ariaHidden: 'true' }, el('i', { style: `width:${(x.done / x.total) * 100}%` })))));
+  $('perfect-card').hidden = !g.perfect.length;
+  $('perfect').replaceChildren(...g.perfect.map((x) => el('li', {}, link(store(x), x.name))));
+}
+
+let presence = null;
+function renderDiscord() {
+  show('discord', presence);
+  if (!presence) return;
+  const u = presence.discord_user;
+  const avatar = u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=128` : 'https://cdn.discordapp.com/embed/avatars/0.png';
+  const custom = presence.activities.find((a) => a.type === 4)?.state;
+  const acts = presence.activities.filter((a) => a.type !== 4 && a.type !== 2); // custom status and Spotify are shown separately
+  const s = presence.spotify;
+  const status = presence.discord_status;
+  $('discord-card').replaceChildren(...[
+    el('div', { className: 'who' },
+      el('span', { className: 'pfp' }, el('img', { src: avatar, alt: '', width: 64, height: 64 }), el('i', { className: `status ${status}` })),
+      el('span', { className: 'txt' }, el('strong', {}, u.global_name || u.username), el('small', {}, t(`discord.${status}`) + (custom ? ` · ${custom}` : '')))),
+    ...acts.map((a) => el('div', { className: 'act' },
+      el('strong', {}, `${t(`discord.${a.type}`) || ''} ${a.name}`.trim()),
+      el('small', {}, [a.details, a.state, a.timestamps?.start && `${t('discord.for')} ${since(a.timestamps.start)}`].filter(Boolean).join(' · ')))),
+    s && el('div', { className: 'act spotify' },
+      el('img', { src: s.album_art_url, alt: '', width: 64, height: 64 }),
+      el('span', { className: 'txt' },
+        el('small', {}, t('discord.spotify')), el('strong', {}, s.song), el('small', {}, s.artist),
+        el('span', { className: 'track', ariaHidden: 'true' }, el('i', { id: 'sp-bar' })), el('small', { id: 'sp-time' }))),
+    !acts.length && !s && status !== 'offline' && el('p', { className: 'empty' }, t('discord.idleText')),
+  ].filter(Boolean));
+  tick();
+}
+function tick() {
+  const s = presence?.spotify;
+  if (!s || !$('sp-bar')) return;
+  const { start, end } = s.timestamps;
+  const now = Math.min(Date.now(), end);
+  $('sp-bar').style.width = `${((now - start) / (end - start)) * 100}%`;
+  $('sp-time').textContent = `${mmss(now - start)} / ${mmss(end - start)}`;
+}
+async function loadDiscord() {
+  try {
+    const r = await (await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)).json();
+    presence = r.success ? r.data : null;
+  } catch { return; } // keep the last state on a network hiccup
+  renderDiscord();
 }
 
 function renderData() {
@@ -125,6 +263,8 @@ function renderData() {
     : [el('li', { className: 'empty' }, t('github.nolangs'))]));
 
   $('updated').textContent = `${t('github.updated')}: ${new Date(data.updated).toLocaleDateString(lang, { dateStyle: 'long' })}.`;
+  renderMusic(fmt);
+  renderGames(fmt);
 }
 
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => {
@@ -144,6 +284,7 @@ try { lang = localStorage.getItem('lang') || ''; } catch {}
 if (!T[lang]) lang = navigator.language.toLowerCase().startsWith('de') ? 'de' : 'en';
 $('year').textContent = new Date().getFullYear();
 render();
+if (DISCORD_ID) { loadDiscord(); setInterval(loadDiscord, 30000); setInterval(tick, 1000); }
 
 fetch('data.json', { cache: 'no-cache' })
   .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
