@@ -105,22 +105,26 @@ const music = env.SPOTIFY_REFRESH_TOKEN ? await optional('Spotify', async () => 
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: env.SPOTIFY_REFRESH_TOKEN }),
   });
   const sp = (path) => getJSON(`https://api.spotify.com/v1${path}`, { headers: { Authorization: `Bearer ${access_token}` } });
-  const [tracks, artists, recent] = await Promise.all([
-    sp('/me/top/tracks?time_range=short_term&limit=10'),
-    sp('/me/top/artists?time_range=short_term&limit=50'), // 50 so the genre counts mean something
-    sp('/me/player/recently-played?limit=10'),
-  ]);
   const img = (images) => (images?.at(-2) || images?.[0])?.url || null; // images come widest first; the middle one is ~300px
   const track = (t) => ({ name: t.name, artist: t.artists.map((a) => a.name).join(', '), url: t.external_urls.spotify, image: img(t.album.images) });
-  const counts = {};
-  for (const a of artists.items) for (const g of a.genres || []) counts[g] = (counts[g] || 0) + 1;
-  return {
-    tracks: tracks.items.map(track),
-    artists: artists.items.slice(0, 10).map((a) => ({ name: a.name, url: a.external_urls.spotify, image: img(a.images) })),
-    recent: recent.items.map((i) => ({ ...track(i.track), at: i.played_at })),
-    genres: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, n]) => ({ name, artists: n })),
-    artistCount: artists.items.length,
-  };
+  // Spotify's three windows: about 4 weeks, 6 months and 12 months. It has no all-time list.
+  const ranges = {};
+  for (const [key, range] of [['short', 'short_term'], ['medium', 'medium_term'], ['long', 'long_term']]) {
+    const [tracks, artists] = await Promise.all([
+      sp(`/me/top/tracks?time_range=${range}&limit=10`),
+      sp(`/me/top/artists?time_range=${range}&limit=50`), // 50 so the genre counts mean something
+    ]);
+    const counts = {};
+    for (const a of artists.items) for (const g of a.genres || []) counts[g] = (counts[g] || 0) + 1;
+    ranges[key] = {
+      tracks: tracks.items.map(track),
+      artists: artists.items.slice(0, 10).map((a) => ({ name: a.name, url: a.external_urls.spotify, image: img(a.images) })),
+      genres: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, n]) => ({ name, artists: n })),
+      artistCount: artists.items.length,
+    };
+  }
+  const recent = await sp('/me/player/recently-played?limit=10');
+  return { ranges, recent: recent.items.map((i) => ({ ...track(i.track), at: i.played_at })) };
 }) : null;
 
 // HIDE_GAMES is a secret (comma-separated names) so the list itself never shows up in the public repo.
@@ -172,7 +176,7 @@ const out = {
   games,
 };
 
-if (music) assert(music.genres.every((g) => g.artists <= music.artistCount), 'a genre cannot have more artists than were fetched');
+if (music) for (const r of Object.values(music.ranges)) assert(r.genres.every((g) => g.artists <= r.artistCount), 'a genre cannot have more artists than were fetched');
 if (games) {
   const shown = [...games.recent, ...games.top, ...games.achievements, ...games.perfect];
   assert(shown.every((g) => !hide.has(g.name.toLowerCase())), 'hidden games must never be listed');

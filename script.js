@@ -22,7 +22,8 @@ const T = {
     'contact.title': 'Contact', 'contact.sub': 'Find me here, or send me a message.', 'contact.copy': 'Copy', 'contact.copied': 'Copied',
     'nav.timeline': 'Timeline', 'nav.music': 'Music', 'nav.games': 'Games', 'nav.discord': 'Discord',
     'timeline.title': 'Timeline',
-    'music.title': 'Music', 'music.sub': "What I've had on repeat on Spotify the last four weeks.",
+    'music.title': 'Music', 'music.sub': 'What I listen to on Spotify. Pick a time range for the top lists.',
+    'music.range': 'Time range', 'music.short': '4 weeks', 'music.medium': '6 months', 'music.long': '12 months', 'music.last': 'last',
     'music.tracks': 'Top tracks', 'music.recent': 'Recently played', 'music.artists': 'Top artists', 'music.genres': 'Top genres',
     'music.artistsN': 'artists',
     'games.title': 'Games', 'games.sub': 'Straight from my Steam library.',
@@ -57,7 +58,8 @@ const T = {
     'contact.title': 'Kontakt', 'contact.sub': 'Hier findest du mich, schreib mir gern.', 'contact.copy': 'Kopieren', 'contact.copied': 'Kopiert',
     'nav.timeline': 'Werdegang', 'nav.music': 'Musik', 'nav.games': 'Games', 'nav.discord': 'Discord',
     'timeline.title': 'Werdegang',
-    'music.title': 'Musik', 'music.sub': 'Was ich die letzten vier Wochen auf Spotify rauf und runter gehört habe.',
+    'music.title': 'Musik', 'music.sub': 'Was ich auf Spotify höre. Für die Top-Listen kannst du den Zeitraum wählen.',
+    'music.range': 'Zeitraum', 'music.short': '4 Wochen', 'music.medium': '6 Monate', 'music.long': '12 Monate', 'music.last': 'letzte',
     'music.tracks': 'Top-Songs', 'music.recent': 'Zuletzt gehört', 'music.artists': 'Top-Künstler', 'music.genres': 'Top-Genres',
     'music.artistsN': 'Künstler',
     'games.title': 'Games', 'games.sub': 'Direkt aus meiner Steam-Bibliothek.',
@@ -71,11 +73,18 @@ const T = {
   },
 };
 
-// Newest first. Add your own milestones here, in both languages.
+// Newest first. Each language has [title, detail].
 const TIMELINE = [
-  { year: 2026, en: 'Built this website.', de: 'Diese Website gebaut.' },
-  { year: 2024, en: 'First commits on GitHub.', de: 'Erste Commits auf GitHub.' },
-  { year: 2023, en: 'Created my GitHub account.', de: 'Meinen GitHub-Account erstellt.' },
+  { year: 2027, en: ['Graduating from HTL Grieskirchen', 'Expected in May 2027'], de: ['Abschluss an der HTL Grieskirchen', 'Voraussichtlich im Mai 2027'] },
+  { year: 2026, en: ['Built this website', 'November 2026'], de: ['Diese Website gebaut', 'November 2026'] },
+  { year: 2026, en: ['Internship at Pöttinger Entsorgungstechnik', 'Obertrattnach, August 2026'], de: ['Praktikum bei Pöttinger Entsorgungstechnik', 'Obertrattnach, August 2026'] },
+  { year: 2026, en: ['Diploma thesis with Weigl Aufzüge', 'July 2026 to March 2027'], de: ['Diplomarbeit bei Weigl Aufzüge', 'Juli 2026 bis März 2027'] },
+  { year: 2025, en: ['Internship at LEHA GmbH', 'Eferding/Breitenaich, July 2025'], de: ['Praktikum bei LEHA GmbH', 'Eferding/Breitenaich, Juli 2025'] },
+  { year: 2024, en: ['First commits on GitHub', 'Started putting my projects online'], de: ['Erste Commits auf GitHub', 'Meine Projekte zum ersten Mal online gestellt'] },
+  { year: 2023, en: ['Created my GitHub account', 'December 2023'], de: ['Meinen GitHub-Account erstellt', 'Dezember 2023'] },
+  { year: 2022, en: ['Started at HTL Grieskirchen', 'September 2022'], de: ['Start an der HTL Grieskirchen', 'September 2022'] },
+  { year: 2018, en: ['Mittelschule Neumarkt-Kallham', '2018 to 2022, finished with good results'], de: ['Mittelschule Neumarkt-Kallham', '2018 bis 2022, mit gutem Erfolg abgeschlossen'] },
+  { year: 2014, en: ['Volksschule Neumarkt im Hausruckkreis', '2014 to 2018, finished with distinction'], de: ['Volksschule Neumarkt im Hausruckkreis', '2014 bis 2018, mit ausgezeichnetem Erfolg abgeschlossen'] },
 ];
 
 // Your numeric Discord user ID (Discord settings > Advanced > Developer Mode, then right-click your name > Copy User ID).
@@ -93,6 +102,7 @@ const FALLBACK = ['#ff9f0a', '#30d158', '#bf5af2', '#64d2ff', '#ff375f'];
 const color = (name, i) => COLORS[name] || FALLBACK[i % FALLBACK.length];
 
 let lang = 'en';
+let range = 'medium'; // Spotify time range for the top lists: short, medium or long
 let data = null;
 const $ = (id) => document.getElementById(id);
 const t = (k) => T[lang][k];
@@ -132,21 +142,28 @@ function render() {
   document.querySelectorAll('[data-i18n]').forEach((n) => { n.textContent = t(n.dataset.i18n); });
   document.querySelectorAll('[data-i18n-label]').forEach((n) => n.setAttribute('aria-label', t(n.dataset.i18nLabel)));
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang));
-  $('timeline-list').replaceChildren(...TIMELINE.map((e) => el('li', {}, el('b', {}, e.year), el('span', {}, e[lang]))));
+  $('timeline-list').replaceChildren(...TIMELINE.map((e) => el('li', {}, el('b', {}, e.year), el('span', {}, el('strong', {}, e[lang][0]), el('small', {}, e[lang][1])))));
   renderDiscord();
   if (data) renderData();
 }
 
 function renderMusic(fmt) {
   const m = data.music;
-  show('music', m);
-  if (!m) return;
-  $('top-tracks').replaceChildren(...m.tracks.map((x) => row(pic(x.image), x.name, x.artist, null, x.url)));
+  show('music', m?.ranges);
+  if (!m?.ranges) return;
+  if (!m.ranges[range]) range = 'medium';
+  const r = m.ranges[range];
+  document.querySelectorAll('[data-range]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.range === range));
+  const span = ` · ${t('music.last')} ${t(`music.${range}`)}`;
+  $('artists-title').textContent = t('music.artists') + span;
+  $('tracks-title').textContent = t('music.tracks') + span;
+  $('genres-title').textContent = t('music.genres') + span;
+  $('top-tracks').replaceChildren(...r.tracks.map((x) => row(pic(x.image), x.name, x.artist, null, x.url)));
   $('recent-tracks').replaceChildren(...m.recent.map((x) => row(pic(x.image), x.name, x.artist, ago(x.at), x.url)));
-  $('top-artists').replaceChildren(...m.artists.map((a) => el('li', {}, link(a.url, pic(a.image), el('span', {}, a.name)))));
-  const max = Math.max(...m.genres.map((g) => g.artists));
-  $('genres-card').hidden = !m.genres.length;
-  $('genres').replaceChildren(...m.genres.map((g) => el('li', { title: `${fmt.format(g.artists)} ${t('music.artistsN')}` },
+  $('top-artists').replaceChildren(...r.artists.map((a) => el('li', {}, link(a.url, pic(a.image), el('span', {}, a.name)))));
+  const max = Math.max(...r.genres.map((g) => g.artists));
+  $('genres-card').hidden = !r.genres.length;
+  $('genres').replaceChildren(...r.genres.map((g) => el('li', { title: `${fmt.format(g.artists)} ${t('music.artistsN')}` },
     el('span', {}, g.name), el('i', { style: `width:${(g.artists / max) * 100}%` }), el('b', {}, fmt.format(g.artists)))));
 }
 
@@ -283,7 +300,13 @@ document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('clic
   setTimeout(() => { small.textContent = t('contact.copy'); }, 1500);
 }));
 
-try { lang = localStorage.getItem('lang') || ''; } catch {}
+document.querySelectorAll('[data-range]').forEach((b) => b.addEventListener('click', () => {
+  range = b.dataset.range;
+  try { localStorage.setItem('range', range); } catch {}
+  renderMusic(new Intl.NumberFormat(lang));
+}));
+
+try { lang = localStorage.getItem('lang') || ''; range = localStorage.getItem('range') || range; } catch {}
 if (!T[lang]) lang = navigator.language.toLowerCase().startsWith('de') ? 'de' : 'en';
 $('year').textContent = new Date().getFullYear();
 render();

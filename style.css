@@ -66,13 +66,15 @@ a:hover { text-decoration: underline; }
 .links a:hover { color: var(--text); text-decoration: none; }
 @media (max-width: 800px) { .links { display: none; } .lang { margin-left: auto; } }
 
-.lang { display: flex; background: var(--chip); border-radius: 999px; padding: 3px; }
-.lang button {
+.lang, .seg { display: flex; background: var(--chip); border-radius: 999px; padding: 3px; }
+.seg { display: inline-flex; margin-bottom: 16px; }
+.lang button, .seg button {
   font: inherit; font-size: 13px; font-weight: 600;
   border: 0; background: none; color: var(--text-2);
   min-width: 44px; min-height: 32px; border-radius: 999px; cursor: pointer;
 }
-.lang button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.lang button[aria-pressed="true"], .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.seg button { padding: 0 16px; min-height: 40px; font-size: 14px; }
 
 /* Hero */
 .hero { text-align: center; padding-top: 88px; padding-bottom: 40px; }
@@ -145,10 +147,13 @@ h3:first-child, h3[hidden] + ul + h3 { margin-top: 0; }
 .timeline { list-style: none; padding: 12px 28px; }
 .timeline li { display: grid; grid-template-columns: 3.5em 1fr; gap: 16px; padding: 12px 0; position: relative; }
 .timeline li::before { content: ""; position: absolute; left: calc(3.5em + 19px); top: 0; bottom: 0; width: 2px; background: var(--line); }
-.timeline li:first-child::before { top: 50%; }
-.timeline li:last-child::before { bottom: 50%; }
+/* the line starts and ends at the first and last dot */
+.timeline li:first-child::before { top: calc(17px + .55em); }
+.timeline li:last-child::before { bottom: auto; height: calc(17px + .55em); }
 .timeline b { color: var(--text-2); font-weight: 600; }
-.timeline span { padding-left: 20px; position: relative; }
+.timeline span { padding-left: 20px; position: relative; display: grid; }
+.timeline strong { font-weight: 600; }
+.timeline small { font-size: 14px; color: var(--text-2); }
 .timeline span::before { content: ""; position: absolute; left: -1px; top: .55em; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
 
 /* List rows: picture, title over subtitle, value on the right */

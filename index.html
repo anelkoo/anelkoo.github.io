@@ -118,14 +118,19 @@
 
     <section class="wrap section" id="music" hidden>
       <h2 data-i18n="music.title">Music</h2>
-      <p class="sub" data-i18n="music.sub">What I've had on repeat on Spotify the last four weeks.</p>
+      <p class="sub" data-i18n="music.sub">What I listen to on Spotify. Pick a time range for the top lists.</p>
+      <div class="seg" role="group" data-i18n-label="music.range" aria-label="Time range">
+        <button type="button" data-range="short" aria-pressed="false" data-i18n="music.short">4 weeks</button>
+        <button type="button" data-range="medium" aria-pressed="true" data-i18n="music.medium">6 months</button>
+        <button type="button" data-range="long" aria-pressed="false" data-i18n="music.long">12 months</button>
+      </div>
       <div class="stack">
+        <div class="card"><h3 id="artists-title"></h3><ul class="artists" id="top-artists"></ul></div>
         <div class="pair">
-          <div class="card"><h3 data-i18n="music.tracks">Top tracks</h3><ol class="rows" id="top-tracks"></ol></div>
-          <div class="card"><h3 data-i18n="music.recent">Recently played</h3><ul class="rows" id="recent-tracks"></ul></div>
+          <div class="card"><h3 id="tracks-title"></h3><ol class="rows" id="top-tracks"></ol></div>
+          <div class="card" id="genres-card"><h3 id="genres-title"></h3><ul class="years genres" id="genres"></ul></div>
         </div>
-        <div class="card"><h3 data-i18n="music.artists">Top artists</h3><ul class="artists" id="top-artists"></ul></div>
-        <div class="card" id="genres-card"><h3 data-i18n="music.genres">Top genres</h3><ul class="years genres" id="genres"></ul></div>
+        <div class="card"><h3 data-i18n="music.recent">Recently played</h3><ul class="rows" id="recent-tracks"></ul></div>
       </div>
     </section>
 
